@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#183b36">
+<title>視知覺紙本教案生成器</title>
+<style>
+:root{--ink:#183b36;--ink-2:#355c55;--muted:#64736d;--paper:#fffefa;--canvas:#f2f1e8;--line:#dfe3d8;--mint:#dff1e7;--lime:#b9ddc6;--coral:#ee8b69;--gold:#f2c46f;--blue:#c8e1e5;--shadow:0 18px 45px rgba(24,59,54,.09)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:ui-rounded,"Noto Sans TC","Noto Sans CJK TC",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+.topbar{display:flex;align-items:center;justify-content:space-between;max-width:1280px;margin:auto;padding:20px 28px}
+.brand{display:flex;gap:11px;align-items:center;font-weight:800;letter-spacing:.02em}
+.brand-mark{width:38px;height:38px;border-radius:13px;background:var(--ink);display:grid;place-items:center;color:#fff}
+.brand-mark svg{width:23px;height:23px}
+.top-note{font-size:13px;color:var(--muted)}
+.hero{max-width:1280px;margin:0 auto;padding:8px 28px 25px;display:flex;justify-content:space-between;align-items:end;gap:24px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;color:#6c8c77;text-transform:uppercase}
+h1{font-size:clamp(28px,4vw,43px);line-height:1.15;margin:9px 0 10px;letter-spacing:-.04em}
+.hero p{margin:0;color:#596b63;line-height:1.7;max-width:700px}
+.hero-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pill{background:#fffdf5;border:1px solid var(--line);border-radius:99px;padding:8px 12px;font-size:12px;color:var(--ink-2);white-space:nowrap}
+main{max-width:1280px;margin:0 auto;padding:0 28px 48px;display:grid;grid-template-columns:340px minmax(0,1fr);gap:22px;align-items:start}
+.settings,.workspace{background:var(--paper);border:1px solid #e5e6dc;border-radius:22px;box-shadow:var(--shadow)}
+.settings{padding:22px;position:sticky;top:18px}
+.settings h2{font-size:18px;margin:0 0 4px}
+.section-hint{font-size:12px;color:var(--muted);line-height:1.55;margin:0 0 19px}
+.field{margin:16px 0}
+.field label,.field-label{display:block;font-weight:750;font-size:13px;margin-bottom:8px}
+.field input[type=number],.field input[type=text],.field select{width:100%;background:#fff;border:1px solid #dce2d8;border-radius:11px;padding:11px 12px;color:var(--ink);outline:none}
+.field input:focus,.field select:focus{border-color:#76a78b;box-shadow:0 0 0 3px rgba(118,167,139,.16)}
+.inline-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.help{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.45}
+.check-list{display:grid;gap:8px}
+.check-card{position:relative;display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer;transition:.15s;background:#fff}
+.check-card:hover{border-color:#a5cbb1;background:#fbfef9}
+.check-card:has(input:checked){border-color:#73a989;background:#f1f8f2}
+.check-card input{accent-color:#397454;width:16px;height:16px;margin:0}
+.check-card span{font-size:13px;font-weight:650}
+.check-count{font-size:11px;color:var(--muted);margin:-2px 0 10px}
+.divider{height:1px;background:var(--line);margin:18px 0}
+.primary-btn,.secondary-btn{border:0;border-radius:12px;padding:12px 15px;font-weight:800;cursor:pointer;transition:transform .12s,background .12s}
+.primary-btn{background:var(--ink);color:#fff;width:100%;box-shadow:0 8px 18px rgba(24,59,54,.16)}
+.primary-btn:hover{background:#24544b;transform:translateY(-1px)}
+.secondary-btn{background:#eef3eb;color:var(--ink);border:1px solid #dce5da}
+.secondary-btn:hover{background:#e4eee4}
+.workspace{padding:22px;min-height:700px}
+.workspace-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.workspace-head h2{font-size:19px;margin:0}
+.status{font-size:12px;color:var(--muted);margin-top:4px}
+.head-actions{display:flex;gap:8px;align-items:center}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.tab{border:0;background:transparent;padding:11px 14px;color:#718079;font-weight:800;cursor:pointer;border-bottom:3px solid transparent}
+.tab.active{color:var(--ink);border-bottom-color:var(--coral)}
+.preview{min-height:600px}
+.print-sheet{background:#fff;border:1px solid #e6e9e2;border-radius:16px;padding:25px;margin-bottom:20px}
+.doc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:16px}
+.doc-kicker{font-size:10px;font-weight:850;letter-spacing:.13em;color:#77927e}
+.doc-title{font-size:24px;line-height:1.2;font-weight:850;margin:5px 0}
+.doc-subtitle{font-size:12px;color:var(--muted);line-height:1.5}
+.doc-stamp{min-width:76px;height:76px;border:1px dashed #b9cbb9;border-radius:50%;display:grid;place-items:center;text-align:center;font-size:11px;color:#64836b;line-height:1.35;transform:rotate(6deg)}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 17px}
+.meta-chip{background:#f3f6ee;border-radius:7px;padding:6px 9px;font-size:11px}
+.doc-section{margin:15px 0}
+.doc-section h3{font-size:14px;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.section-dot{width:8px;height:8px;border-radius:50%;background:var(--coral)}
+.objectives{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.objective{border:1px solid #e3eadf;background:#f8faf4;border-radius:11px;padding:10px 12px;font-size:12px;line-height:1.55}
+.objective b{display:block;font-size:11px;color:#62806b;margin-bottom:4px}
+.steps{width:100%;border-collapse:collapse;font-size:11.5px}
+.steps th{text-align:left;background:#edf4ec;padding:8px 9px}
+.steps td{padding:8px 9px;border-bottom:1px solid #e8ece5;vertical-align:top;line-height:1.5}
+.steps td:first-child{font-weight:800;white-space:nowrap}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mini-card{border-radius:11px;padding:11px 12px;background:#f7f7f0;border:1px solid #e8e8dc;font-size:11.5px;line-height:1.6}
+.mini-card h4{font-size:12px;margin:0 0 5px}
+.mini-card ul{padding-left:17px;margin:0}
+.note-line{font-size:10px;color:var(--muted);line-height:1.5;margin-top:12px}
+.record-table{width:100%;border-collapse:collapse;font-size:10.5px}
+.record-table th,.record-table td{border:1px solid #dfe5dc;padding:7px;text-align:left}
+.record-table th{background:#f0f5ee}
+.student-line{font-size:11px;color:#455e53;display:flex;gap:22px;margin:10px 0}
+.student-line span{border-bottom:1px solid #82948a;min-width:120px;padding-bottom:4px}
+.task-card{border:1px solid #e1e6dc;border-radius:13px;padding:12px 14px;margin:10px 0;background:#fff}
+.task-title{display:flex;align-items:center;gap:8px;font-weight:850;font-size:13px;margin-bottom:4px}
+.task-number{width:22px;height:22px;border-radius:8px;background:var(--mint);display:grid;place-items:center;font-size:11px}
+.task-instruction{font-size:11px;color:#53665d;line-height:1.5;margin:0 0 8px}
+.symbol{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
+.symbol svg{display:block}
+.disc-table{display:grid;gap:4px}
+.disc-row{display:grid;grid-template-columns:30px repeat(5,1fr);align-items:center;gap:5px;min-height:34px}
+.disc-row .target{font-size:9px;color:#738077}
+.answer-box{height:30px;border:1px solid #d7ded4;border-radius:6px;display:grid;place-items:center}
+.find-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;max-width:340px}
+.find-cell{height:34px;border:1px solid #e2e6e0;border-radius:6px;display:grid;place-items:center}
+.sequence-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:6px 0}
+.sequence-row .answer-box{width:38px;height:37px}
+.sequence-prompt{display:flex;align-items:center;gap:6px;font-size:10px;color:#52645a}
+.spatial-board{display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,38px);gap:3px;margin:8px auto;width:max-content}
+.spatial-cell{border:1px solid #cfd8cf;border-radius:5px;display:grid;place-items:center}
+.spatial-instructions{font-size:10px;line-height:1.7;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.choice-row{display:flex;align-items:center;gap:8px;margin:5px 0}
+.partial-target{border:1px dashed #a9b6ab;border-radius:7px;width:43px;height:40px;display:grid;place-items:center;background:#fbfcf9}
+.partial-target svg{width:30px;height:30px}
+.shape-options{display:flex;gap:9px;align-items:center}
+.shape-options .answer-box{width:38px;height:38px}
+.footer-line{display:flex;justify-content:space-between;border-top:1px dashed #d7dfd5;margin-top:13px;padding-top:8px;color:#728078;font-size:9px}
+.empty-state{padding:60px 15px;text-align:center;color:var(--muted)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,15px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:10}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:900px){main{grid-template-columns:300px minmax(0,1fr);padding:0 18px 36px}.hero,.topbar{padding-left:18px;padding-right:18px}.workspace{padding:16px}.print-sheet{padding:18px}}
+@media(max-width:720px){.hero{display:block}.hero-badges{justify-content:flex-start;margin-top:14px}.top-note{display:none}main{display:flex;flex-direction:column;padding:0 12px 28px}.settings{position:static;width:100%}.workspace{width:100%;min-height:500px}.workspace-head{align-items:flex-start}.head-actions{flex-direction:column-reverse}.doc-top{gap:8px}.doc-stamp{min-width:58px;height:58px;font-size:9px}.objectives,.two-col{grid-template-columns:1fr}.print-sheet{padding:15px}.disc-row{grid-template-columns:25px repeat(5,1fr);gap:3px}.answer-box{height:27px}}
+@page{size:A4;margin:12mm}
+@media print{
+ body{background:#fff;color:#111;font-size:10pt}
+ .topbar,.hero,.settings,.workspace-head,.tabs,.no-print,.toast{display:none!important}
+ main{display:block;max-width:none;padding:0;margin:0}
+ .workspace{display:block;border:0;box-shadow:none;border-radius:0;padding:0;min-height:0}
+ .preview{display:block!important;min-height:0}
+ .print-sheet{display:block!important;border:0;border-radius:0;box-shadow:none;margin:0;padding:0;min-height:0;color:#111;page-break-after:always;break-after:page}
+ .print-sheet:last-child{page-break-after:auto;break-after:auto}
+ .doc-title{font-size:20pt}
+ .doc-top{padding-bottom:8px;margin-bottom:8px}
+ .meta-row{margin:7px 0 10px}
+ .doc-section{margin:9px 0}
+ .doc-section h3{font-size:11pt;margin-bottom:5px}
+ .objectives{gap:5px}
+ .objective,.mini-card{font-size:9pt;padding:6px 8px}
+ .steps{font-size:8.5pt}
+ .steps th,.steps td{padding:5px 6px}
+ .task-card{padding:8px 10px;margin:7px 0;break-inside:avoid}
+ .task-title{font-size:10pt;margin-bottom:2px}
+ .task-instruction{font-size:8.5pt;margin-bottom:5px}
+ .disc-row{min-height:26px}
+ .answer-box{height:24px}
+ .find-cell{height:27px}
+ .symbol svg{max-width:29px;max-height:29px}
+ .note-line{font-size:8pt}
+ .doc-stamp{width:58px;height:58px}
+ .record-table th,.record-table td{padding:4px}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7.3" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.3" fill="#f2c46f"/><path d="M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>看見・練習室</div>
+  <div class="top-note">給孩子的視知覺練習，從看見開始。</div>
+</div>
+<section class="hero">
+  <div>
+    <div class="eyebrow">PAPER ACTIVITY BUILDER</div>
+    <h1>視知覺紙本教案生成器</h1>
+    <p>選擇孩子的練習目標，快速整理成一份治療流程和可列印學習單。可以先生成，再直接修改內容。</p>
+  </div>
+  <div class="hero-badges"><span class="pill">A4 列印友善</span><span class="pill">可自行編修</span><span class="pill">繁體中文</span></div>
+</section>
+<main>
+  <aside class="settings">
+    <h2>設定這次練習</h2>
+    <p class="section-hint">依孩子目前表現挑選 1–2 個目標；生成後可再調整教案文字。</p>
+    <div class="inline-fields">
+      <div class="field"><label for="age">孩子年齡</label><input id="age" type="number" min="3" max="12" value="7" aria-label="孩子年齡"></div>
+      <div class="field"><label for="minutes">活動時間</label><select id="minutes"><option value="15">15 分鐘</option><option value="20" selected>20 分鐘</option><option value="30">30 分鐘</option><option value="40">40 分鐘</option></select></div>
+    </div>
+    <div class="field">
+      <label for="level">難度</label>
+      <select id="level"><option value="easy">入門｜少量圖形、線索明確</option><option value="middle" selected>適中｜一般練習</option><option value="challenge">挑戰｜增加相似干擾</option></select>
+    </div>
+    <div class="field">
+      <label for="theme">活動主題</label>
+      <select id="theme"><option>動物探險</option><option>太空任務</option><option>海洋尋寶</option><option>交通小隊</option><option>森林觀察</option><option value="custom">自訂主題</option></select>
+      <input id="customTheme" type="text" placeholder="輸入自訂主題" style="display:none;margin-top:8px">
+    </div>
+    <div class="field">
+      <div class="field-label">視知覺目標</div>
+      <div class="check-count" id="checkCount">已選 2 / 2</div>
+      <div class="check-list" id="focusList">
+        <label class="check-card"><input type="checkbox" name="focus" value="discrimination" checked><span>視覺區辨｜找出相同或不同</span></label>
+        <label class="check-card"><input type="checkbox" name="focus" value="figureground" checked><span>圖地背景｜從圖群中找目標</span></label>
+        <label class="check-card"><input type="checkbox" name="focus" value="memory"><span>視覺記憶｜看過後記住圖形</span></label>
+        <label class="check-card"><input type="checkbox" name="focus" value="spatial"><span>空間關係｜理解位置與方向</span></label>
+        <label class="check-card"><input type="checkbox" name="focus" value="closure"><span>視覺閉合｜辨認不完整圖形</span></label>
+        <label class="check-card"><input type="checkbox" name="focus" value="sequence"><span>視覺序列｜觀察排列規律</span></label>
+        <label class="check-card"><input type="checkbox" name="focus" value="constancy"><span>形狀恆常｜辨認不同大小方向</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">支持方式</div>
+      <div class="check-list">
+        <label class="check-card"><input type="checkbox" name="support" value="simple"><span>減少周圍視覺干擾</span></label>
+        <label class="check-card"><input type="checkbox" name="support" value="large" checked><span>放大圖形與作答空間</span></label>
+        <label class="check-card"><input type="checkbox" name="support" value="step"><span>一次說一個步驟</span></label>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <button class="primary-btn" id="generateBtn" type="button">✦　生成教案與學習單</button>
+    <p class="help">紙本活動是練習素材；請依評估結果、孩子反應和功能需求調整。</p>
+  </aside>
+  <section class="workspace">
+    <div class="workspace-head">
+      <div><h2>你的教案草稿</h2><div class="status" id="status">已依目前設定生成，可點選文字修改。</div></div>
+      <div class="head-actions">
+        <button class="secondary-btn no-print" id="resetBtn" type="button">重新設定</button>
+        <button class="primary-btn no-print" id="printBtn" type="button" style="width:auto">列印／存成 PDF</button>
+      </div>
+    </div>
+    <div class="tabs no-print" role="tablist" aria-label="教案預覽">
+      <button class="tab active" type="button" data-tab="lesson" role="tab" aria-selected="true">① 教案流程</button>
+      <button class="tab" type="button" data-tab="worksheet" role="tab" aria-selected="false">② 孩子學習單</button>
+    </div>
+    <div class="preview" id="preview">
+      <article class="print-sheet" id="lessonPanel" role="tabpanel"></article>
+      <article class="print-sheet" id="worksheetPanel" role="tabpanel" style="display:none"></article>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+"use strict";
+var shapeNames=["圓形","方形","三角形","菱形","星形","十字形"];
+var shapeMarkup={
+"圓形":'<circle cx="32" cy="32" r="20"/>',
+"方形":'<rect x="13" y="13" width="38" height="38" rx="2"/>',
+"三角形":'<path d="M32 10 55 52H9Z"/>',
+"菱形":'<path d="M32 8 56 32 32 56 8 32Z"/>',
+"星形":'<path d="m32 7 6.6 16.1 17.4 1.3-13.3 11.2 4.3 17-15-9.2-15 9.2 4.3-17L8 24.4l17.4-1.3Z"/>',
+"十字形":'<path d="M24 9h16v15h15v16H40v15H24V40H9V24h15Z"/>'
+};
+var focus={
+discrimination:{name:"視覺區辨",short:"找相同圖形",objective:"在 5 組圖形中，圈出與目標相同的圖形，至少答對 4 組。"},
+figureground:{name:"圖地背景",short:"圖群找目標",objective:"在混合圖形中找出指定目標，至少圈出 8 個中的 6 個。"},
+memory:{name:"視覺記憶",short:"看過後記住",objective:"觀察圖形排列後，遮住範例並依序重現至少 3 個圖形。"},
+spatial:{name:"空間關係",short:"位置與方向",objective:"依口語指示，在目標物的指定方位完成記號，至少正確 2 題。"},
+closure:{name:"視覺閉合",short:"補完整圖形",objective:"觀察局部圖形並選出相符的完整圖形，至少答對 3 題。"},
+sequence:{name:"視覺序列",short:"找出排列規律",objective:"觀察圖形排列，依序完成至少 3 組規律。"},
+constancy:{name:"形狀恆常",short:"方向大小變化",objective:"在大小或方向不同的圖形中，找出相同形狀至少 4 次。"}
+};
+var levelText={easy:"入門",middle:"適中",challenge:"挑戰"};
+var $=function(id){return document.getElementById(id)};
+var toastTimer;
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function icon(name,size,rotation){
+ var transform=rotation?" transform=\"rotate("+rotation+" 32 32)\"":"";
+ return '<span class="symbol" aria-label="'+esc(name)+'"><svg width="'+size+'" height="'+size+'" viewBox="0 0 64 64" aria-hidden="true"><g'+transform+' fill="none" stroke="#263e38" stroke-width="3.3" stroke-linejoin="round" stroke-linecap="round">'+(shapeMarkup[name]||shapeMarkup["圓形"])+'</g></svg></span>';
+}
+function partialIcon(name,size){
+ var white='<rect x="35" y="10" width="25" height="26" fill="white" stroke="none"/>';
+ return '<span class="symbol"><svg width="'+size+'" height="'+size+'" viewBox="0 0 64 64" aria-label="不完整的'+esc(name)+'"><g fill="none" stroke="#263e38" stroke-width="3.3" stroke-linejoin="round" stroke-linecap="round">'+shapeMarkup[name]+white+'</g></svg></span>';
+}
+function getInputs(){
+ var selected=Array.prototype.slice.call(document.querySelectorAll('input[name="focus"]:checked')).map(function(x){return x.value});
+ var supports=Array.prototype.slice.call(document.querySelectorAll('input[name="support"]:checked')).map(function(x){return x.value});
+ var theme=$("theme").value==="custom"?($("customTheme").value.trim()||"主題探索"):$("theme").value;
+ var age=Math.max(3,Math.min(12,parseInt($("age").value,10)||7));
+ return {selected:selected,supports:supports,age:age,minutes:parseInt($("minutes").value,10),level:$("level").value,theme:theme};
+}
+function shapeAt(seed,exclude){
+ var list=shapeNames.filter(function(x){return x!==exclude});
+ return list[(seed*3+1)%list.length];
+}
+function objectiveCards(data){
+ return data.selected.map(function(key,i){return '<div class="objective editable" contenteditable="true"><b>目標 '+(i+1)+'｜'+focus[key].name+'</b>'+focus[key].objective+'</div>'}).join("");
+}
+function supportList(supports){
+ var labels={simple:"使用單色桌墊或遮紙，減少同一視野中的其他刺激。",large:"提供較大的圖形與作答格，作答空間保持清楚。",step:"先示範一題，再一次給一個簡短指令。"};
+ var arr=supports.map(function(x){return labels[x]});
+ if(!arr.length)arr.push("維持桌面整潔，依孩子的反應調整提示與題目數量。");
+ return arr.map(function(x){return "<li>"+x+"</li>"}).join("");
+}
+function makeSteps(data){
+ var total=data.minutes;
+ var warm=Math.max(2,Math.round(total*.2));
+ var demo=Math.max(3,Math.round(total*.2));
+ var practice=Math.max(5,Math.round(total*.45));
+ var close=total-warm-demo-practice;
+ if(close<2){practice-=2;close=2}
+ var exerciseNames=data.selected.map(function(k){return focus[k].short}).join("、");
+ var rows=[
+  ["暖身",warm+" 分","簡單找圖或配對，確認孩子理解「看一樣」的作答方式。"],
+  ["示範",demo+" 分","以 1 題示範目標圖形與作答方式；請孩子說出看到的線索。"],
+  ["主要練習",practice+" 分",exerciseNames+"；每題後給等待時間，依需要提供口語或視覺提示。"],
+  ["收尾",close+" 分","回顧哪一種線索最有幫助，記錄正確題數與提示程度。"]
+ ];
+ return rows.map(function(r){return "<tr><td>"+r[0]+"</td><td>"+r[1]+"</td><td class=\"editable\" contenteditable=\"true\">"+r[2]+"</td></tr>"}).join("");
+}
+function renderLesson(data){
+ var objectives=objectiveCards(data);
+ var practiceName=data.selected.map(function(k){return focus[k].short}).join("、");
+ var title=data.theme+"・視知覺任務";
+ return '<div class="doc-top"><div><div class="doc-kicker">看見・練習室　/　治療活動計畫</div><div class="doc-title editable" contenteditable="true">'+esc(title)+'</div><div class="doc-subtitle editable" contenteditable="true">用圖形線索解開任務，練習觀察、搜尋與表達。</div></div><div class="doc-stamp">活動<br>計畫</div></div>'+
+ '<div class="meta-row"><span class="meta-chip">年齡：'+data.age+' 歲</span><span class="meta-chip">時間：'+data.minutes+' 分鐘</span><span class="meta-chip">難度：'+levelText[data.level]+'</span><span class="meta-chip">目標：'+data.selected.length+' 項</span></div>'+
+ '<section class="doc-section"><h3><i class="section-dot"></i>本次練習目標</h3><div class="objectives">'+objectives+'</div></section>'+
+ '<section class="doc-section"><h3><i class="section-dot"></i>活動流程</h3><table class="steps"><thead><tr><th>階段</th><th>時間</th><th>帶領方式</th></tr></thead><tbody>'+makeSteps(data)+'</tbody></table></section>'+
+ '<section class="doc-section"><div class="two-col"><div class="mini-card"><h4>準備材料</h4><ul><li>本次學習單、鉛筆與橡皮擦</li><li>遮紙或資料夾（視覺記憶活動使用）</li><li>計時器（需要時使用）</li></ul></div><div class="mini-card"><h4>支持方式</h4><ul>'+supportList(data.supports)+'</ul></div></div></section>'+
+ '<section class="doc-section"><h3><i class="section-dot"></i>觀察與調整</h3><table class="record-table"><thead><tr><th>觀察項目</th><th>紀錄</th><th>下次調整方向</th></tr></thead><tbody><tr><td>正確題數／總題數</td><td contenteditable="true">　　　 / 　　　</td><td contenteditable="true">　　　　　　　　</td></tr><tr><td>需要的提示</td><td contenteditable="true">□無　□口語　□手勢　□示範</td><td contenteditable="true">　　　　　　　　</td></tr><tr><td>參與與作答狀況</td><td contenteditable="true">□穩定　□需休息　□需調整題量</td><td contenteditable="true">　　　　　　　　</td></tr></tbody></table></section>'+
+ '<div class="note-line editable" contenteditable="true">帶領提醒：先確認孩子理解題目，再觀察其搜尋策略、視線移動、速度與疲勞狀況。題目可依孩子表現增減。</div>';
+}
+function exerciseDiscrimination(index,data){
+ var rows=data.level==="easy"?4:data.level==="challenge"?6:5;
+ var size=data.supports.indexOf("large")>=0?27:22;
+ var out='<div class="task-instruction">每一排先看左邊的目標圖形，再把右邊所有相同的圖形圈起來。</div><div class="disc-table">';
+ for(var r=0;r<rows;r++){
+  var target=shapeNames[(r+index)%shapeNames.length];
+  out+='<div class="disc-row"><div class="target">目標</div>'+icon(target,size,0);
+  for(var j=0;j<5;j++){
+   var match=(j===((r+1)%5)||j===((r+4)%5));
+   var name=match?target:shapeAt(r+j+index,target);
+   out+='<div class="answer-box">'+icon(name,size,0)+'</div>';
+  }
+  out+='</div>';
+ }
+ return out+'</div>';
+}
+function exerciseFigureGround(index,data){
+ var rows=data.level==="easy"?4:data.level==="challenge"?6:5;
+ var cols=5;
+ var target=shapeNames[(index+2)%shapeNames.length];
+ var size=data.supports.indexOf("large")>=0?27:22;
+ var out='<div class="task-instruction">在圖形群裡，找出所有的「'+target+'」，把它們圈起來。</div><div class="find-grid">';
+ for(var i=0;i<rows*cols;i++){
+  var isTarget=(i%6===index%6||i%9===4);
+  var name=isTarget?target:shapeAt(i+index,target);
+  var rot=data.level==="challenge"&&i%2?45:0;
+  out+='<div class="find-cell">'+icon(name,size,rot)+'</div>';
+ }
+ return out+'</div>';
+}
+function exerciseMemory(index,data){
+ var count=data.level==="easy"?3:data.level==="challenge"?5:4;
+ var seq=[];
+ for(var i=0;i<count;i++)seq.push(shapeNames[(i*2+index)%shapeNames.length]);
+ var size=data.supports.indexOf("large")>=0?30:25;
+ var out='<div class="task-instruction">先觀察上排圖形 10 秒。大人用紙遮住上排後，請孩子在下方空格依序畫出記得的圖形。</div><div class="sequence-prompt">請先看這串： <span class="sequence-row">';
+ seq.forEach(function(n){out+=icon(n,size,0)});
+ out+='</span></div><div class="sequence-row" aria-label="作答空格">';
+ for(var j=0;j<count;j++)out+='<div class="answer-box" style="width:44px;height:39px"></div>';
+ out+='</div>';
+ return out;
+}
+function exerciseSpatial(index,data){
+ var size=data.supports.indexOf("large")>=0?27:22;
+ var board='<div class="spatial-board">';
+ for(var i=0;i<9;i++)board+='<div class="spatial-cell">'+(i===4?icon("星形",size,0):"")+'</div>';
+ board+='</div>';
+ return '<div class="task-instruction">看中央的星星，聽完指令後，在正確位置畫上圖形。</div>'+board+'<div class="spatial-instructions"><span>1. 在星星上方格畫 ○</span><span>2. 在星星左方格畫 △</span><span>3. 在星星下方格畫 □</span></div>';
+}
+function exerciseClosure(index,data){
+ var rows=data.level==="easy"?3:4;
+ var size=data.supports.indexOf("large")>=0?28:23;
+ var out='<div class="task-instruction">看左邊不完整的圖形，想想它完成後是什麼，再把右邊相同的圖形圈起來。</div>';
+ for(var i=0;i<rows;i++){
+  var target=shapeNames[(i+index+1)%shapeNames.length];
+  var options=[target,shapeAt(i+1,target),shapeAt(i+3,target),shapeAt(i+5,target)];
+  var shift=(i+index)%4;
+  options=options.slice(shift).concat(options.slice(0,shift));
+  out+='<div class="choice-row"><div class="partial-target">'+partialIcon(target,size)+'</div><span style="font-size:10px;color:#6b7b72">選一個：</span><div class="shape-options">';
+  options.forEach(function(n){out+='<div class="answer-box">'+icon(n,size,0)+'</div>'});
+  out+='</div></div>';
+ }
+ return out;
+}
+function exerciseSequence(index,data){
+ var rows=data.level==="easy"?3:data.level==="challenge"?4:3;
+ var length=data.level==="easy"?3:data.level==="challenge"?5:4;
+ var size=data.supports.indexOf("large")>=0?25:21;
+ var out='<div class="task-instruction">觀察每一排的規律，在最後一格畫出下一個圖形。</div>';
+ for(var r=0;r<rows;r++){
+  var a=shapeNames[(r+index)%shapeNames.length],b=shapeNames[(r+index+2)%shapeNames.length];
+  out+='<div class="sequence-row">';
+  for(var c=0;c<length;c++)out+=icon(c%2===0?a:b,size,0);
+  out+='<span style="font-size:14px">…</span><div class="answer-box" style="width:36px;height:34px"></div></div>';
+ }
+ return out;
+}
+function exerciseConstancy(index,data){
+ var rows=data.level==="easy"?3:4;
+ var size=data.supports.indexOf("large")>=0?27:22;
+ var out='<div class="task-instruction">先看左邊的目標圖形。右邊有些圖形轉了方向或大小不同，請圈出仍然是同一種形狀的圖形。</div>';
+ for(var r=0;r<rows;r++){
+  var target=shapeNames[(r+index+2)%shapeNames.length];
+  out+='<div class="disc-row" style="grid-template-columns:36px repeat(4,1fr)"><div class="target">目標</div>'+icon(target,size,0);
+  for(var j=0;j<4;j++){
+   var same=j===1||j===3;
+   var name=same?target:shapeAt(r+j+index,target);
+   var rot=same?(j===1?45:90):(data.level==="challenge"?j*25:0);
+   out+='<div class="answer-box">'+icon(name,size,rot)+'</div>';
+  }
+  out+='</div>';
+ }
+ return out;
+}
+var renderExercise={discrimination:exerciseDiscrimination,figureground:exerciseFigureGround,memory:exerciseMemory,spatial:exerciseSpatial,closure:exerciseClosure,sequence:exerciseSequence,constancy:exerciseConstancy};
+function renderWorksheet(data){
+ var title=data.theme+"・觀察任務學習單";
+ var tasks=data.selected.map(function(key,i){
+  return '<section class="task-card"><div class="task-title"><span class="task-number">'+(i+1)+'</span><span>'+focus[key].name+'｜'+focus[key].short+'</span></div>'+renderExercise[key](i,data)+'</section>';
+ }).join("");
+ return '<div class="doc-top"><div><div class="doc-kicker">看見・練習室　/　孩子的任務紙</div><div class="doc-title editable" contenteditable="true">'+esc(title)+'</div><div class="doc-subtitle">完成任務後，可以和老師分享你用了什麼方法找到答案。</div></div><div class="doc-stamp">我會<br>仔細看</div></div>'+
+ '<div class="student-line"><span>姓名：</span><span>日期：</span></div>'+tasks+
+ '<div class="footer-line"><span>我今天完成了：　□ 很順利　□ 再練習一次</span><span>謝謝你用心觀察！</span></div>';
+}
+function refresh(){
+ var data=getInputs();
+ if(!data.selected.length){
+  showToast("請至少選擇一項視知覺目標");
+  return;
+ }
+ $("lessonPanel").innerHTML=renderLesson(data);
+ $("worksheetPanel").innerHTML=renderWorksheet(data);
+ $("status").textContent="已生成 "+data.selected.length+" 項目標｜點選文字可修改，列印時會包含教案與學習單。";
+}
+function showToast(text){
+ var t=$("toast");t.textContent=text;t.classList.add("show");
+ clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove("show")},2300);
+}
+function updateFocusAvailability(){
+ var boxes=Array.prototype.slice.call(document.querySelectorAll('input[name="focus"]'));
+ var checked=boxes.filter(function(b){return b.checked});
+ $("checkCount").textContent="已選 "+checked.length+" / 2";
+ boxes.forEach(function(b){
+  if(!b.checked&&checked.length>=2)b.disabled=true;
+  else b.disabled=false;
+ });
+}
+document.querySelectorAll('input[name="focus"]').forEach(function(box){
+ box.addEventListener("change",function(){
+  if(box.checked&&document.querySelectorAll('input[name="focus"]:checked').length>2){box.checked=false;showToast("一次最多選擇 2 項目標，讓學習單更清楚。")}
+  updateFocusAvailability();
+ });
+});
+$("theme").addEventListener("change",function(){ $("customTheme").style.display=$("theme").value==="custom"?"block":"none" });
+$("generateBtn").addEventListener("click",function(){refresh();document.querySelector('[data-tab="lesson"]').click();showToast("已生成，預覽文字可以直接修改。")});
+$("printBtn").addEventListener("click",function(){window.print()});
+$("resetBtn").addEventListener("click",function(){
+ $("age").value="7";$("minutes").value="20";$("level").value="middle";$("theme").value="動物探險";$("customTheme").value="";$("customTheme").style.display="none";
+ document.querySelectorAll('input[name="focus"]').forEach(function(b){b.checked=b.value==="discrimination"||b.value==="figureground"});
+ document.querySelectorAll('input[name="support"]').forEach(function(b){b.checked=b.value==="large"});
+ updateFocusAvailability();refresh();document.querySelector('[data-tab="lesson"]').click();showToast("已回到預設設定。");
+});
+document.querySelectorAll(".tab").forEach(function(tab){
+ tab.addEventListener("click",function(){
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("active",t===tab);t.setAttribute("aria-selected",t===tab?"true":"false")});
+  $("lessonPanel").style.display=tab.dataset.tab==="lesson"?"block":"none";
+  $("worksheetPanel").style.display=tab.dataset.tab==="worksheet"?"block":"none";
+ });
+});
+updateFocusAvailability();
+refresh();
+})();
+</script>
+</body>
+</html>
